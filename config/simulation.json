@@ -1,20 +1,20 @@
 {
-	"area":"HERNALS"
-	"mobileNum":"10"
-	"cloudNum":"6"
-	"cloudonly":"false"
-	"appNum":"20"
-	"eta":"1.0"
-	"iter":"100"
-	"mobility":"true"
-	"navigatorMapSize":"10"
-	"antivirusFileSize":"50"
-	"facerecImageSize":"15"
-	"facebookImageSize":"10"
-	"chessMi":"200"
-	"navigatorDistr":"0.2"
-	"antivirusDistr":"0.2"
-	"facerecDistr":"0.2"
-	"chessDistr":"0.2"
-	"facebookDistr":"0.2"
+	"area": "HERNALS",
+	"mobileNum": "10",
+	"cloudNum": "6",
+	"cloudonly": "false",
+	"appNum": "20",
+	"eta": "1.0",
+	"iter": "100",
+	"mobility": "true",
+	"navigatorMapSize": "10",
+	"antivirusFileSize": "50",
+	"facerecImageSize": "15",
+	"facebookImageSize": "10",
+	"chessMi": "200",
+	"navigatorDistr": "0.2",
+	"antivirusDistr": "0.2",
+	"facerecDistr": "0.2",
+	"chessDistr": "0.2",
+	"facebookDistr": "0.2"
 }

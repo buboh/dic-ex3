@@ -68,6 +68,8 @@ public class OffloadingMain {
 	
 	public static void main(String[] arg)
 	{
+		ConfigFileParser.parseFile("./config/simulation.json");
+
 		processArgs(arg);
 		Logger.getLogger("org").setLevel(Level.OFF);
 		Logger.getLogger("akka").setLevel(Level.OFF);
@@ -76,9 +78,7 @@ public class OffloadingMain {
 			Comparator<Tuple2<OffloadScheduling, Tuple5<Integer, Double, Double, Double, Double>>>
 		{
 
-			/**
-			 * 
-			 */
+
 			private static final long serialVersionUID = -2034500309733677393L;
 
 			public int compare(Tuple2<OffloadScheduling, Tuple5<Integer, Double, Double,Double, Double>> o1,
@@ -95,12 +95,12 @@ public class OffloadingMain {
 		SparkConf configuration = new SparkConf();
 		configuration.setMaster("local");
 		configuration.setAppName("Sleipnir");
-		
-		ConfigFileParser.parseFile("./config/simulation.json");
-		
+
 		setupAreaParameters();
 		JavaSparkContext jscontext = new JavaSparkContext(configuration);
 		ArrayList<Tuple2<MobileApplication,MobileCloudInfrastructure>> inputSamples = generateSamples(SimulationSetup.iterations);
+
+		// + since we run multiple algorithms, we need multiple output files
 		PrintWriter[] writers = new PrintWriter[SimulationSetup.algorithms.length];
 		int writerIndex = 0;
 		

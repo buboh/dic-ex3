@@ -49,7 +49,7 @@ import at.ac.tuwien.ec.provisioning.edge.RandomEdgePlanner;
 import at.ac.tuwien.ec.provisioning.edge.mo.MOEdgePlanning;
 import at.ac.tuwien.ec.provisioning.mobile.DefaultMobileDevicePlanner;
 import at.ac.tuwien.ec.scheduling.Scheduling;
-import at.ac.tuwien.ec.scheduling.algorithms.heftbased.HEFTCostResearch;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTCostResearch;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTBattery;

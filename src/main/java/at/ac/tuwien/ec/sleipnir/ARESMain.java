@@ -56,7 +56,7 @@ import at.ac.tuwien.ec.provisioning.mobile.DefaultMobileDevicePlanner;
 import at.ac.tuwien.ec.provisioning.triobj.TriobjPlanner;
 import at.ac.tuwien.ec.provisioning.triobj.TriobjSolution;
 import at.ac.tuwien.ec.scheduling.Scheduling;
-import at.ac.tuwien.ec.scheduling.algorithms.heftbased.HEFTCostResearch;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTCostResearch;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTBattery;

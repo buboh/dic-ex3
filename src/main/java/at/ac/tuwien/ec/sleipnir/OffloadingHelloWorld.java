@@ -206,9 +206,14 @@ public class OffloadingHelloWorld {
 								new ArrayList<Tuple2<OffloadScheduling,Tuple5<Integer,Double,Double,Double,Double>>>();
 						OffloadScheduler singleSearch;
 						
-						if (algoritmName == "some-algo") {
+						switch (algoritmName) {
+							case "some-algo":
 							singleSearch = null;
-						} else {
+								break;
+							case "heft":
+								singleSearch = new HEFTResearch(inputValues);
+								break;
+							default:
 							singleSearch = new HEFTResearch(inputValues);
 						}
 						
@@ -477,12 +482,11 @@ public class OffloadingHelloWorld {
 				continue;
 			}
 			
-			if(s.startsWith("-algoName=")) {
+			if (s.startsWith("-algoName=")) {
 				String[] tmp = s.split("=");
 				OffloadingSetup.algoName = tmp[1];
 				continue;
 			}
-			
 		}
 	}
 

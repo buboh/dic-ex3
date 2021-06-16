@@ -16,5 +16,6 @@
 	"antivirusDistr": "0.2",
 	"facerecDistr": "0.2",
 	"chessDistr": "0.2",
-	"facebookDistr": "0.2"
+	"facebookDistr": "0.2",
+	"algoName": "heft"
 }

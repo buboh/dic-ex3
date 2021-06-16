@@ -206,7 +206,11 @@ public class OffloadingHelloWorld {
 								new ArrayList<Tuple2<OffloadScheduling,Tuple5<Integer,Double,Double,Double,Double>>>();
 						OffloadScheduler singleSearch;
 						
-						singleSearch = new HEFTResearch(inputValues);
+						if (algoritmName == "some-algo") {
+							singleSearch = null;
+						} else {
+							singleSearch = new HEFTResearch(inputValues);
+						}
 						
 						ArrayList<OffloadScheduling> offloads = (ArrayList<OffloadScheduling>) singleSearch.findScheduling();
 						if(offloads != null)
@@ -468,8 +472,17 @@ public class OffloadingHelloWorld {
 				continue;
 			}
 						
-			if(s.equals("-cloudonly"))
+			if(s.equals("-cloudonly")) {
 				OffloadingSetup.cloudOnly = true;
+				continue;
+			}
+			
+			if(s.startsWith("-algoName=")) {
+				String[] tmp = s.split("=");
+				OffloadingSetup.algoName = tmp[1];
+				continue;
+			}
+			
 		}
 	}
 
@@ -512,6 +525,8 @@ public class OffloadingHelloWorld {
 				+ "Probability of CHESS app in workflow (must be between 0 and 1).\n"
 				+ "-facebookDistr=#\t"
 				+ "Probability of FACEBOOK app in workflow (must be between 0 and 1).\n"
+				+ "-algoName=#\t"
+				+ "Name of algorithm to use for offloading.\n"
 				+ "\n"
 				+ "");
 	}

@@ -24,7 +24,18 @@
 		<link>
 			<name>libz3</name>
 			<type>2</type>
-			<location>/home/vincenzo/z3/src</location>
+			<location>c:/home/vincenzo/z3/src</location>
 		</link>
 	</linkedResources>
+	<filteredResources>
+		<filter>
+			<id>1624205022144</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>org.eclipse.core.resources.regexFilterMatcher</id>
+				<arguments>node_modules|.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
+			</matcher>
+		</filter>
+	</filteredResources>
 </projectDescription>

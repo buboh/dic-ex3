@@ -55,6 +55,8 @@ import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTBattery;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTResearch;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.multiobjective.RandomScheduler;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.hlfet.HLFETScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HeftEchoResearch;
 
 import at.ac.tuwien.ec.sleipnir.utils.ConfigFileParser;
@@ -206,7 +208,8 @@ public class OffloadingHelloWorld {
 								new ArrayList<Tuple2<OffloadScheduling,Tuple5<Integer,Double,Double,Double,Double>>>();
 						OffloadScheduler singleSearch;
 						
-						singleSearch = new HEFTResearch(inputValues);
+						/*singleSearch = new HEFTResearch(inputValues);*/
+						singleSearch = new HLFETScheduler(inputValues);
 						
 						ArrayList<OffloadScheduling> offloads = (ArrayList<OffloadScheduling>) singleSearch.findScheduling();
 						if(offloads != null)

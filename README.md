@@ -89,3 +89,6 @@ Simulation can be configured either by using command lines arguments or the conf
 
 SimulationSetup <-> OffloadingSetup
 OffloadingMain <-> OffloadingHelloWorld
+
+
+At the end of the execution, the simulator provides the values for runtime, cost and battery lifetime for the algorithm. Your comparison should be performed based on Runtime and Battery Lifetime, which are the second and the fourth value of the output tuple

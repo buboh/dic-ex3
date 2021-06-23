@@ -1,11 +1,9 @@
 package at.ac.tuwien.ec.sleipnir;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,54 +11,31 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
-import java.util.function.Function;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
-import org.jgrapht.Graph;
-import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import at.ac.tuwien.ec.model.infrastructure.MobileCloudInfrastructure;
-import at.ac.tuwien.ec.model.infrastructure.MobileDataDistributionInfrastructure;
-import at.ac.tuwien.ec.model.software.ComponentLink;
 import at.ac.tuwien.ec.model.software.MobileApplication;
-import at.ac.tuwien.ec.model.software.MobileSoftwareComponent;
 import at.ac.tuwien.ec.model.software.MobileWorkload;
-import at.ac.tuwien.ec.model.software.mobileapps.AntivirusApp;
-import at.ac.tuwien.ec.model.software.mobileapps.ChessApp;
-import at.ac.tuwien.ec.model.software.mobileapps.FacebookApp;
-import at.ac.tuwien.ec.model.software.mobileapps.FacerecognizerApp;
-import at.ac.tuwien.ec.model.software.mobileapps.NavigatorApp;
 import at.ac.tuwien.ec.model.software.mobileapps.WorkloadGenerator;
 import at.ac.tuwien.ec.provisioning.DefaultCloudPlanner;
 import at.ac.tuwien.ec.provisioning.DefaultNetworkPlanner;
 import at.ac.tuwien.ec.provisioning.edge.EdgeAllCellPlanner;
-import at.ac.tuwien.ec.provisioning.edge.RandomEdgePlanner;
-import at.ac.tuwien.ec.provisioning.edge.mo.MOEdgePlanning;
 import at.ac.tuwien.ec.provisioning.mobile.DefaultMobileDevicePlanner;
 import at.ac.tuwien.ec.provisioning.mobile.MobileDevicePlannerWithMobility;
-import at.ac.tuwien.ec.scheduling.Scheduling;
-import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTCostResearch;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
-import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTBattery;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.dic3.ETF;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTResearch;
-import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HeftEchoResearch;
-
 import at.ac.tuwien.ec.sleipnir.utils.ConfigFileParser;
-
-import at.ac.tuwien.ec.scheduling.offloading.algorithms.multiobjective.scheduling.NSGAIIIResearch;
-import at.ac.tuwien.ec.scheduling.offloading.bruteforce.BruteForceRuntimeOffloader;
 import at.ac.tuwien.ec.sleipnir.utils.MontecarloStatisticsPrinter;
 import scala.Tuple2;
 import scala.Tuple5;
@@ -214,17 +189,25 @@ public class OffloadingHelloWorld {
 					@Override
 					public Iterator<Tuple2<OffloadScheduling, Tuple5<Integer, Double, Double, Double, Double>>> call(
 							Tuple2<MobileApplication, MobileCloudInfrastructure> inputValues) throws Exception {
+
 						ArrayList<Tuple2<OffloadScheduling, Tuple5<Integer, Double, Double, Double, Double>>> output = new ArrayList<Tuple2<OffloadScheduling, Tuple5<Integer, Double, Double, Double, Double>>>();
 						OffloadScheduler singleSearch;
 
 						switch (algoritmName) {
 							case "some-algo":
+								System.out.println("Using some-algo");
 								singleSearch = null;
 								break;
 							case "heft":
+								System.out.println("Using HEFT");
 								singleSearch = new HEFTResearch(inputValues);
 								break;
+							case "etf":
+								System.out.println("Using ETF");
+								singleSearch = new ETF(inputValues);
+								break;
 							default:
+								System.out.println("Using default");
 								singleSearch = new HEFTResearch(inputValues);
 						}
 

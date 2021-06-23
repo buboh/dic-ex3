@@ -35,6 +35,8 @@ import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.dic3.ETF;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTResearch;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.hlfet.HLFETScheduler;
+
 import at.ac.tuwien.ec.sleipnir.utils.ConfigFileParser;
 import at.ac.tuwien.ec.sleipnir.utils.MontecarloStatisticsPrinter;
 import scala.Tuple2;
@@ -205,6 +207,10 @@ public class OffloadingHelloWorld {
 							case "etf":
 								System.out.println("Using ETF");
 								singleSearch = new ETF(inputValues);
+								break;
+							case "hlfet":
+								System.out.println("Using HLFET");
+								singleSearch = new HLFETScheduler(inputValues);
 								break;
 							default:
 								System.out.println("Using default");

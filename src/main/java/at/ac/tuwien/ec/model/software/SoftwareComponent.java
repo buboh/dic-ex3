@@ -6,8 +6,8 @@ import at.ac.tuwien.ec.model.Hardware;
 import at.ac.tuwien.ec.model.infrastructure.MobileCloudInfrastructure;
 import at.ac.tuwien.ec.model.infrastructure.computationalnodes.ComputationalNode;
 
-public class SoftwareComponent implements Serializable{
-	
+public class SoftwareComponent implements Serializable {
+
 	/**
 	 * 
 	 */
@@ -16,15 +16,14 @@ public class SoftwareComponent implements Serializable{
 	private Hardware requirements; // the hardware requirements
 	protected double millionsOfInstruction; // the millions of instructions for its execution
 	private String userId; // the id of the mobile device who wants to execute it
-	
-	public SoftwareComponent(String id, Hardware requirements,double millionsOfInstructions, String uid)
-	{
+
+	public SoftwareComponent(String id, Hardware requirements, double millionsOfInstructions, String uid) {
 		this.id = id;
 		this.requirements = requirements;
 		this.millionsOfInstruction = millionsOfInstructions;
 		this.userId = uid;
-	}	
-	
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -58,27 +57,31 @@ public class SoftwareComponent implements Serializable{
 	}
 
 	public double getLocalRuntimeOnNode(ComputationalNode n, MobileCloudInfrastructure i) {
-		return (millionsOfInstruction/n.getMipsPerCore());
+		return (millionsOfInstruction / n.getMipsPerCore());
 	}
-	
 
 	public double getRuntimeOnNode(ComputationalNode n, MobileCloudInfrastructure i) {
-		if(this.getUserId().equals("anyone"))
+		if (this.getUserId().equals("anyone"))
 			return millionsOfInstruction / n.getMipsPerCore();
-		return i.getTransmissionTime((MobileSoftwareComponent)this, i.getNodeById(this.getUserId()), n)
-				+ (millionsOfInstruction/n.getMipsPerCore());
-				
+		return i.getTransmissionTime((MobileSoftwareComponent) this, i.getNodeById(this.getUserId()), n)
+				+ (millionsOfInstruction / n.getMipsPerCore());
+
 	}
-	
+
+	public double getStarttimeOnNode(ComputationalNode n, MobileCloudInfrastructure i) {
+		// Similar to calculating the runtime on a node, just without adding the actual
+		// runtime
+		return i.getTransmissionTime((MobileSoftwareComponent) this, i.getNodeById(this.getUserId()), n);
+	}
+
 	public double getRuntimeOnNode(ComputationalNode n, ComputationalNode m, MobileCloudInfrastructure i) {
-		return ((n==null||m==null)? 0 : i.getTransmissionTime((MobileSoftwareComponent)this, n, m)) 
-				+ (millionsOfInstruction/m.getMipsPerCore());
-				
+		return ((n == null || m == null) ? 0 : i.getTransmissionTime((MobileSoftwareComponent) this, n, m))
+				+ (millionsOfInstruction / m.getMipsPerCore());
+
 	}
 
 	public Hardware getHardwareRequirements() {
 		return requirements;
 	}
-
 
 }

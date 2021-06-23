@@ -16,6 +16,7 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import at.ac.tuwien.ec.model.infrastructure.MobileCloudInfrastructure;
 import at.ac.tuwien.ec.model.infrastructure.computationalnodes.ComputationalNode;
+import at.ac.tuwien.ec.model.infrastructure.computationalnodes.MobileDevice;
 import at.ac.tuwien.ec.model.software.ComponentLink;
 import at.ac.tuwien.ec.model.software.MobileApplication;
 import at.ac.tuwien.ec.model.software.MobileSoftwareComponent;
@@ -85,16 +86,17 @@ public class HEFTResearch extends OffloadScheduler {
 		//We initialize a new OffloadScheduling object, modelling the scheduling computer with this algorithm
 		OffloadScheduling scheduling = new OffloadScheduling(); 
 		//We check until there are nodes available for scheduling
-		while((currTask = tasks.poll())!=null)
+		while((currTask = tasks.peek()) != null)
 		{
-			//If there are nodes to be scheduled, we check the first task who terminates and free its resources
-			if(!scheduledNodes.isEmpty())
-			{
-				MobileSoftwareComponent firstTaskToTerminate = scheduledNodes.remove();
-				((ComputationalNode) scheduling.get(firstTaskToTerminate)).undeploy(firstTaskToTerminate);
-			}
 			double tMin = Double.MAX_VALUE; //Minimum execution time for next task
 			ComputationalNode target = null;
+			
+			/*while(!currentApp.getIncomingEdgesIn(currTask).isEmpty() && !scheduledNodes.isEmpty())
+			{
+				MobileSoftwareComponent terminated = scheduledNodes.remove();
+				((ComputationalNode) scheduling.get(terminated)).undeploy(terminated);
+				this.currentApp.removeTask(terminated);
+			}*/			
 			if(!currTask.isOffloadable())
 			{
 			    // If task is not offloadable, deploy it in the mobile device (if enough resources are available)
@@ -103,14 +105,28 @@ public class HEFTResearch extends OffloadScheduler {
 				
 			}
 			else
-			{		
+			{	
+				//Check for all available Cloud/Edge nodes
 				for(ComputationalNode cn : currentInfrastructure.getAllNodes())
 					if(currTask.getRuntimeOnNode(cn, currentInfrastructure) < tMin &&
 							isValid(scheduling,currTask,cn))
 					{
-						tMin = currTask.getRuntimeOnNode(cn, currentInfrastructure); // Earliest Finish Time  EFT = wij + EST
+						tMin = cn.getESTforTask(currTask) + currTask.getRuntimeOnNode(cn, currentInfrastructure); // Earliest Finish Time  EFT = wij + EST
 						target = cn;
+						
 					}
+				/*
+				 * We need this check, because there are cases where, even if the task is offloadable, 
+				 * local execution is the best option
+				 */
+				ComputationalNode localDevice = (ComputationalNode) currentInfrastructure.getNodeById(currTask.getUserId());
+				if(currTask.getRuntimeOnNode(localDevice, currentInfrastructure) < tMin &&
+						isValid(scheduling,currTask,localDevice))
+				{
+					tMin = localDevice.getESTforTask(currTask) + currTask.getRuntimeOnNode(localDevice, currentInfrastructure); // Earliest Finish Time  EFT = wij + EST
+					target = localDevice;
+					
+				}
 				
 			}
 			//if scheduling found a target node for the task, it allocates it to the target node
@@ -118,7 +134,12 @@ public class HEFTResearch extends OffloadScheduler {
 			{
 				deploy(scheduling,currTask,target);
 				scheduledNodes.add(currTask);
-
+				tasks.remove(currTask);
+			}
+			else if(!scheduledNodes.isEmpty());
+			{
+				MobileSoftwareComponent terminated = scheduledNodes.remove();
+				((ComputationalNode) scheduling.get(terminated)).undeploy(terminated);
 			}
 			/*
 			 * if simulation considers mobility, perform post-scheduling operations

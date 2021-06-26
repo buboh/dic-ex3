@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.mcp.MCPScheduler;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
@@ -211,6 +212,10 @@ public class OffloadingHelloWorld {
 							case "hlfet":
 								System.out.println("Using HLFET");
 								singleSearch = new HLFETScheduler(inputValues);
+								break;
+							case "mcp":
+								System.out.println("Using MCP");
+								singleSearch = new MCPScheduler(inputValues);
 								break;
 							default:
 								System.out.println("Using default");

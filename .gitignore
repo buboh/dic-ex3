@@ -31,3 +31,4 @@ traces/*
 .project
 *.prefs
 *.data
+.idea/

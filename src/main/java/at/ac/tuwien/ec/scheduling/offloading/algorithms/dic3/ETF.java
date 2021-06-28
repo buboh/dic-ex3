@@ -2,6 +2,7 @@ package at.ac.tuwien.ec.scheduling.offloading.algorithms.dic3;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.jgrapht.graph.DirectedAcyclicGraph;
@@ -13,6 +14,7 @@ import at.ac.tuwien.ec.model.software.MobileApplication;
 import at.ac.tuwien.ec.model.software.MobileSoftwareComponent;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.utils.NodeRankComparator;
 import at.ac.tuwien.ec.sleipnir.OffloadingSetup;
 import scala.Tuple2;
 
@@ -56,17 +58,25 @@ public class ETF extends OffloadScheduler {
         // ETF output: starting time, finishing time and processor for each task
         ArrayList<OffloadScheduling> schedulings = new ArrayList<OffloadScheduling>();
 
+        // ???
         DirectedAcyclicGraph<MobileSoftwareComponent, ComponentLink> deps = this.getMobileApplication()
                 .getTaskDependencies();
 
-        // nodes with 0 incoming edges - ready to execute
-        ArrayList<MobileSoftwareComponent> ready = this.getMobileApplication().readyTasks();
-        System.out.println(ready);
+        System.out.println(deps);
 
-        Iterator<MobileSoftwareComponent> it = deps.iterator();
-        while (it.hasNext()) {
-            MobileSoftwareComponent vertex = it.next();
-            taskList.add(vertex);
+        // nodes with 0 incoming edges - ready to execute
+        ArrayList<MobileSoftwareComponent> availableTasks = this.getMobileApplication().readyTasks();
+        // PriorityQueue<MobileSoftwareComponent> availableTasks = new PriorityQueue<MobileSoftwareComponent>(new NodeRankComparator());
+
+        // free processors
+        ArrayList<ComputationalNode> availableNodes = this.getInfrastructure().getAllNodes();
+
+        double currentMoment = 0;
+        double nextMoment = Double.MAX_VALUE;
+
+        // while scheduledTasks
+        while (!availableTasks.isEmpty()) {
+
         }
 
         OffloadScheduling scheduling = new OffloadScheduling();
@@ -76,23 +86,50 @@ public class ETF extends OffloadScheduler {
 
             target = null;
 
+            double tMin = Double.MAX_VALUE; // Minimum execution time for next task
+
             if (!currTask.isOffloadable()) {
-                ComputationalNode node = (ComputationalNode) currentInfrastructure.getNodeById(currTask.getUserId());
-                if (isValid(scheduling, currTask, node)) {
-                    target = (ComputationalNode) currentInfrastructure.getNodeById(currTask.getUserId());
+                // If task is not offloadable, deploy it in the mobile device (if enough
+                // resources are available)
+                ComputationalNode localDevice = (ComputationalNode) currentInfrastructure
+                        .getNodeById(currTask.getUserId());
+                if (isValid(scheduling, currTask, localDevice)) {
+                    target = localDevice;
                 }
             } else {
-                UniformIntegerDistribution uid = new UniformIntegerDistribution(0,
-                        currentInfrastructure.getAllNodes().size() - 1);
-                ComputationalNode tmpTarget = (ComputationalNode) currentInfrastructure.getAllNodes().toArray()[uid
-                        .sample()];
-                if (isValid(scheduling, currTask, tmpTarget)) {
-                    target = tmpTarget;
+                // Check for all available Cloud/Edge nodes
+                for (ComputationalNode cn : currentInfrastructure.getAllNodes())
+                    if (currTask.getRuntimeOnNode(cn, currentInfrastructure) < tMin
+                            && isValid(scheduling, currTask, cn)) {
+                        // Earliest Finish Time EFT = wij + EST
+                        tMin = cn.getESTforTask(currTask) + currTask.getRuntimeOnNode(cn, currentInfrastructure);
+                        target = cn;
+
+                    }
+                /*
+                 * We need this check, because there are cases where, even if the task is
+                 * offloadable, local execution is the best option
+                 */
+                ComputationalNode localDevice = (ComputationalNode) currentInfrastructure
+                        .getNodeById(currTask.getUserId());
+                if (currTask.getRuntimeOnNode(localDevice, currentInfrastructure) < tMin
+                        && isValid(scheduling, currTask, localDevice)) {
+                    // Earliest Finish Time EFT = wij + EST
+                    tMin = localDevice.getESTforTask(currTask)
+                            + currTask.getRuntimeOnNode(localDevice, currentInfrastructure);
+                    target = localDevice;
                 }
             }
             if (target != null) {
                 deploy(scheduling, currTask, target);
             }
+            // scheduledNodes.add(currTask);
+            // tasks.remove(currTask);
+            // } else if (!scheduledNodes.isEmpty()) {
+            // MobileSoftwareComponent terminated = scheduledNodes.remove();
+            // ((ComputationalNode) scheduling.get(terminated)).undeploy(terminated);
+            // }
+
             /*
              * if simulation considers mobility, perform post-scheduling operations (default
              * is to update coordinates of mobile devices)

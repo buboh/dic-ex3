@@ -1,12 +1,7 @@
-package at.ac.tuwien.ec.scheduling.offloading.algorithms.dic3;
+package at.ac.tuwien.ec.scheduling.offloading.algorithms.etf;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.PriorityQueue;
 
-import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 
 import at.ac.tuwien.ec.model.infrastructure.MobileCloudInfrastructure;
@@ -16,8 +11,6 @@ import at.ac.tuwien.ec.model.software.MobileApplication;
 import at.ac.tuwien.ec.model.software.MobileSoftwareComponent;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
-import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.utils.NodeRankComparator;
-import at.ac.tuwien.ec.sleipnir.OffloadingSetup;
 import scala.Tuple2;
 
 /**
@@ -29,6 +22,8 @@ import scala.Tuple2;
  */
 
 public class ETF extends OffloadScheduler {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      *
@@ -206,24 +201,4 @@ public class ETF extends OffloadScheduler {
         }
         return msc.getRank();
     }
-
-    /*
-     * private class ESTComparator implements Comparator<MobileSoftwareComponent> {
-     * 
-     * private MobileCloudInfrastructure currentInfrastructure; private
-     * OffloadScheduling currentScheduling;
-     * 
-     * private ESTComparator(MobileCloudInfrastructure I, OffloadScheduling
-     * scheduling) { super(); this.currentInfrastructure = I; this.currentScheduling
-     * = scheduling; }
-     * 
-     * @Override public int compare(MobileSoftwareComponent o1,
-     * MobileSoftwareComponent o2) { double est1 = Double.MAX_VALUE; double est2 =
-     * Double.MAX_VALUE; ComputationalNode cn1; ComputationalNode cn2; for
-     * (ComputationalNode cn : currentInfrastructure.getAllNodes()) if
-     * (isValid(currentScheduling, o1, cn)) { double est = cn.getESTforTask(o1); //
-     * Earliest Start Time EST if (est < tMin) { tMin = est; target = cn; } }
-     * 
-     * return 0; } }
-     */
 }

@@ -1,4 +1,4 @@
-package at.ac.tuwien.ec.scheduling.offloading.algorithms.dic3;
+package at.ac.tuwien.ec.scheduling.offloading.algorithms.etf;
 
 import java.util.ArrayList;
 import java.util.Iterator;

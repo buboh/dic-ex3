@@ -144,5 +144,68 @@ public class ETF extends OffloadScheduler {
 
         schedulings.add(scheduling);
         return schedulings;
+
+    }
+
+    /**
+     * calculateBLevel is the task prioritizing phase of HLFET rank is computed
+     * recuversively by traversing the task graph downward rank is calculated by
+     * adding up the maximum weights in the graph until the exist task is reached
+     * 
+     * @param msc
+     * @param dag            Mobile Application's DAG
+     * @param infrastructure
+     * @return the rank of msc
+     */
+
+    private double calculateBLevel(MobileSoftwareComponent msc,
+            DirectedAcyclicGraph<MobileSoftwareComponent, ComponentLink> dag,
+            MobileCloudInfrastructure infrastructure) {
+        double w_cmp = 0.0; // average execution time of task on each processor / node of this component
+        /*
+         * since upward Rank is defined recursively, visited makes sure no extra
+         * unnecessary computations are done when calling calculateBLevel on all nodes
+         * during initialization
+         */
+        if (!msc.isVisited()) {
+            msc.setVisited(true);
+            int numberOfNodes = infrastructure.getAllNodes().size() + 1;
+            for (ComputationalNode cn : infrastructure.getAllNodes())
+                w_cmp += msc.getLocalRuntimeOnNode(cn, infrastructure);
+
+            w_cmp = w_cmp / numberOfNodes;
+
+            double maxNeighbor = 0.0;
+            // for the exit task rank=w_cmp
+            for (ComponentLink neigh : dag.outgoingEdgesOf(msc)) {
+                // rank = w_Cmp + max(cij + rank(j) for all j in succ(i)
+                // where cij is the average commmunication cost of edge (i, j)
+                double thisNeighbor = 0.0;
+                thisNeighbor = calculateBLevel(neigh.getTarget(), dag, infrastructure);
+                // succesor's computational weight (= Node Weight)
+
+                double tmpCRank = 0;
+                // this component's average Communication rank (= Edge Weight)
+                // We consider only offloadable successors. If a successor is not offloadable,
+                // communication cost is 0
+                if (neigh.getTarget().isOffloadable()) {
+                    for (ComputationalNode cn : infrastructure.getAllNodes())
+                        tmpCRank += infrastructure.getTransmissionTime(neigh.getTarget(),
+                                infrastructure.getNodeById(msc.getUserId()), cn);
+                    tmpCRank = tmpCRank / (infrastructure.getAllNodes().size());
+                }
+
+                // Increase the cost of this Neighbor by the Communication (=Edge) Weight / Cost
+                thisNeighbor = thisNeighbor + tmpCRank;
+
+                if (thisNeighbor > maxNeighbor) {
+                    maxNeighbor = thisNeighbor;
+                }
+            }
+
+            double rank = w_cmp + maxNeighbor;
+            msc.setRank(rank);
+        }
+        return msc.getRank();
     }
 }

@@ -1,6 +1,8 @@
 package at.ac.tuwien.ec.scheduling.offloading.algorithms.dic3;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
@@ -39,14 +41,24 @@ public class ETF extends OffloadScheduler {
         super();
         setMobileApplication(A);
         setInfrastructure(I);
-        // setRank(this.currentApp,this.currentInfrastructure);
+        // compute B-level for all tasks
+        setRank(this.currentApp, this.currentInfrastructure);
     }
 
     public ETF(Tuple2<MobileApplication, MobileCloudInfrastructure> t) {
         super();
         setMobileApplication(t._1());
         setInfrastructure(t._2());
-        // setRank(this.currentApp,this.currentInfrastructure);
+        // compute B-level for all tasks
+        setRank(this.currentApp, this.currentInfrastructure);
+    }
+
+    protected void setRank(MobileApplication A, MobileCloudInfrastructure I) {
+        for (MobileSoftwareComponent msc : A.getTaskDependencies().vertexSet())
+            msc.setVisited(false);
+
+        for (MobileSoftwareComponent msc : A.getTaskDependencies().vertexSet())
+            calculateBLevel(msc, A.getTaskDependencies(), I);
     }
 
     @Override
@@ -54,81 +66,68 @@ public class ETF extends OffloadScheduler {
         // execution time
         double start = System.nanoTime();
 
-        ArrayList<MobileSoftwareComponent> taskList = new ArrayList<>();
         // ETF output: starting time, finishing time and processor for each task
         ArrayList<OffloadScheduling> schedulings = new ArrayList<OffloadScheduling>();
 
-        // ???
-        DirectedAcyclicGraph<MobileSoftwareComponent, ComponentLink> deps = this.getMobileApplication()
-                .getTaskDependencies();
-
-        System.out.println(deps);
-
         // nodes with 0 incoming edges - ready to execute
         ArrayList<MobileSoftwareComponent> availableTasks = this.getMobileApplication().readyTasks();
-        // PriorityQueue<MobileSoftwareComponent> availableTasks = new PriorityQueue<MobileSoftwareComponent>(new NodeRankComparator());
+        // PriorityQueue<MobileSoftwareComponent> availableTasks = new
+        // PriorityQueue<MobileSoftwareComponent>(new NodeRankComparator());
 
-        // free processors
-        ArrayList<ComputationalNode> availableNodes = this.getInfrastructure().getAllNodes();
-
-        double currentMoment = 0;
-        double nextMoment = Double.MAX_VALUE;
+        // We initialize a new OffloadScheduling object, modelling the scheduling
+        // computer with this algorithm
+        OffloadScheduling scheduling = new OffloadScheduling();
 
         // while scheduledTasks
         while (!availableTasks.isEmpty()) {
 
-        }
+            double nextEst = Double.MAX_VALUE;
+            MobileSoftwareComponent nextTask = null;
+            ComputationalNode target = null;
 
-        OffloadScheduling scheduling = new OffloadScheduling();
-        ComputationalNode target;
-
-        for (MobileSoftwareComponent currTask : taskList) {
-
-            target = null;
-
-            double tMin = Double.MAX_VALUE; // Minimum execution time for next task
-
-            if (!currTask.isOffloadable()) {
-                // If task is not offloadable, deploy it in the mobile device (if enough
-                // resources are available)
-                ComputationalNode localDevice = (ComputationalNode) currentInfrastructure
-                        .getNodeById(currTask.getUserId());
-                if (isValid(scheduling, currTask, localDevice)) {
-                    target = localDevice;
-                }
-            } else {
-                // Check for all available Cloud/Edge nodes
-                for (ComputationalNode cn : currentInfrastructure.getAllNodes())
-                    if (currTask.getRuntimeOnNode(cn, currentInfrastructure) < tMin
-                            && isValid(scheduling, currTask, cn)) {
-                        // Earliest Finish Time EFT = wij + EST
-                        tMin = cn.getESTforTask(currTask) + currTask.getRuntimeOnNode(cn, currentInfrastructure);
-                        target = cn;
-
+            // compute EST for all tasks for all processors
+            for (MobileSoftwareComponent currTask : availableTasks) {
+                for (ComputationalNode cn : currentInfrastructure.getAllNodes()) {
+                    if (isValid(scheduling, currTask, cn)) {
+                        // Earliest Start Time EST
+                        double est = cn.getESTforTask(currTask);
+                        if (est < nextEst) {
+                            nextEst = est;
+                            nextTask = currTask;
+                            target = cn;
+                        } else if (est == nextEst) {
+                            if (currTask.getRank() > nextTask.getRank()) {
+                                nextEst = est;
+                                nextTask = currTask;
+                                target = cn;
+                            }
+                        }
                     }
-                /*
-                 * We need this check, because there are cases where, even if the task is
-                 * offloadable, local execution is the best option
-                 */
-                ComputationalNode localDevice = (ComputationalNode) currentInfrastructure
-                        .getNodeById(currTask.getUserId());
-                if (currTask.getRuntimeOnNode(localDevice, currentInfrastructure) < tMin
-                        && isValid(scheduling, currTask, localDevice)) {
-                    // Earliest Finish Time EFT = wij + EST
-                    tMin = localDevice.getESTforTask(currTask)
-                            + currTask.getRuntimeOnNode(localDevice, currentInfrastructure);
-                    target = localDevice;
+                }
+                // check if execution on local device is better
+                ComputationalNode local = (ComputationalNode) currentInfrastructure.getNodeById(currTask.getUserId());
+                if (isValid(scheduling, currTask, local)) {
+                    // Earliest Start Time EST
+                    double est = local.getESTforTask(currTask);
+                    if (est < nextEst) {
+                        nextEst = est;
+                        nextTask = currTask;
+                        target = local;
+                    } else if (est == nextEst) {
+                        if (currTask.getRank() > nextTask.getRank()) {
+                            nextEst = est;
+                            nextTask = currTask;
+                            target = local;
+                        }
+                    }
                 }
             }
-            if (target != null) {
-                deploy(scheduling, currTask, target);
+
+            if (target != null && nextTask != null) {
+                deploy(scheduling, nextTask, target);
+                availableTasks.remove(nextTask);
+                availableTasks.addAll(this.getMobileApplication().getNeighbors(nextTask));
             }
-            // scheduledNodes.add(currTask);
-            // tasks.remove(currTask);
-            // } else if (!scheduledNodes.isEmpty()) {
-            // MobileSoftwareComponent terminated = scheduledNodes.remove();
-            // ((ComputationalNode) scheduling.get(terminated)).undeploy(terminated);
-            // }
 
             /*
              * if simulation considers mobility, perform post-scheduling operations (default
@@ -157,7 +156,6 @@ public class ETF extends OffloadScheduler {
      * @param infrastructure
      * @return the rank of msc
      */
-
     private double calculateBLevel(MobileSoftwareComponent msc,
             DirectedAcyclicGraph<MobileSoftwareComponent, ComponentLink> dag,
             MobileCloudInfrastructure infrastructure) {
@@ -208,4 +206,24 @@ public class ETF extends OffloadScheduler {
         }
         return msc.getRank();
     }
+
+    /*
+     * private class ESTComparator implements Comparator<MobileSoftwareComponent> {
+     * 
+     * private MobileCloudInfrastructure currentInfrastructure; private
+     * OffloadScheduling currentScheduling;
+     * 
+     * private ESTComparator(MobileCloudInfrastructure I, OffloadScheduling
+     * scheduling) { super(); this.currentInfrastructure = I; this.currentScheduling
+     * = scheduling; }
+     * 
+     * @Override public int compare(MobileSoftwareComponent o1,
+     * MobileSoftwareComponent o2) { double est1 = Double.MAX_VALUE; double est2 =
+     * Double.MAX_VALUE; ComputationalNode cn1; ComputationalNode cn2; for
+     * (ComputationalNode cn : currentInfrastructure.getAllNodes()) if
+     * (isValid(currentScheduling, o1, cn)) { double est = cn.getESTforTask(o1); //
+     * Earliest Start Time EST if (est < tMin) { tMin = est; target = cn; } }
+     * 
+     * return 0; } }
+     */
 }

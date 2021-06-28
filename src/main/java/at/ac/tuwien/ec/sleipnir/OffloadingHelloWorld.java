@@ -441,6 +441,7 @@ public class OffloadingHelloWorld {
 			if (s.startsWith("-algoName=")) {
 				String[] tmp = s.split("=");
 				OffloadingSetup.algoName = tmp[1];
+				OffloadingSetup.outfile = tmp[1];
 				continue;
 			}
 		}

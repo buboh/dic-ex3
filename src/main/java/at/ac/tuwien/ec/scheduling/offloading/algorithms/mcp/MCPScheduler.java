@@ -93,9 +93,9 @@ public class MCPScheduler extends OffloadScheduler {
             }
             else {
                 for (ComputationalNode cn : currentInfrastructure.getAllNodes()) {
-                    if (chosen.getStarttimeOnNode(cn, currentInfrastructure) < tMin &&
+                    if (cn.getESTforTask(chosen) < tMin &&
                             isValid(scheduling, chosen, cn)) {
-                        tMin = chosen.getStarttimeOnNode(cn, currentInfrastructure); // Earliest Start Time
+                        tMin = cn.getESTforTask(chosen); // Earliest Start Time
                         target = cn;
                     }
                 }
@@ -155,7 +155,6 @@ public class MCPScheduler extends OffloadScheduler {
                 .forEach(task -> alapFromOneNode(graph, task));
         double executionTime = -this.minAlap;
         allVertices.forEach(exe -> this.alapTimes.put(exe, executionTime + this.alapTimes.get(exe)));
-        this.alapTimes.forEach((key, value) -> System.out.println("ALAP time for " + key.getId() + ": " + value));
     }
 
     private double alapFromOneNode(final DirectedAcyclicGraph<MobileSoftwareComponent,ComponentLink> graph, final MobileSoftwareComponent current) {

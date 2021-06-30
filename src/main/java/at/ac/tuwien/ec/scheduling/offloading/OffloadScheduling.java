@@ -96,7 +96,7 @@ public class OffloadScheduling extends Scheduling{
     	double taskTermination = this.runTime + n.getESTforTask(s) + nodeComputationTime;
     	s.setRunTime(taskTermination);
     	if(taskTermination > this.runTime)
-    	this.runTime = taskTermination;
+    		this.runTime = taskTermination;
     }
     /**
      * Removes runtime of execution of component s on node n and infrastructure I

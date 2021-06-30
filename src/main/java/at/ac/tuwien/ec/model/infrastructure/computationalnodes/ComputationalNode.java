@@ -103,6 +103,8 @@ public abstract class ComputationalNode extends NetworkedNode implements Seriali
 			ArrayList<MobileSoftwareComponent> tmpAllocated = (ArrayList<MobileSoftwareComponent>) allocated.clone();
 			HardwareCapabilities futureCapabilities = capabilities.clone();
 			MobileSoftwareComponent firstTask = tmpAllocated.remove(0);
+			// simulate undeploying tasks (in order of growing runtime) until sc can be deployed
+			// return total run duration of last task to be undeployed in order to make space for sc
 			while(!futureCapabilities.supports(sc.getHardwareRequirements()))
 			{
 				futureCapabilities.undeploy(firstTask);

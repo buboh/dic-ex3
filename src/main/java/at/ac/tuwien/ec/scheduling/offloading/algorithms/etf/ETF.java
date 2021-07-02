@@ -16,7 +16,9 @@ import at.ac.tuwien.ec.model.software.MobileSoftwareComponent;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
 import at.ac.tuwien.ec.scheduling.utils.RuntimeComparator;
+import at.ac.tuwien.ec.sleipnir.OffloadingSetup;
 import scala.Tuple2;
+
 
 /**
  * OffloadScheduler class that implements the Earliest-Time-First (ETF)
@@ -92,33 +94,19 @@ public class ETF extends OffloadScheduler {
         System.out.println("Total tasks: " + allTasks.size());
         System.out.println(allTasks);
         int schedulingCounter = 0;
-        // PriorityQueue<MobileSoftwareComponent> availableTasks = new
-        // PriorityQueue<MobileSoftwareComponent>(new NodeRankComparator());
 
         // We initialize a new OffloadScheduling object, modelling the scheduling
         // computer with this algorithm
         OffloadScheduling scheduling = new OffloadScheduling();
 
         // while scheduledTasks
-        while (!availableTasks.isEmpty()) { // !availableTasks.isEmpty()) {
-
-            // System.out.println("Available: " + availableTasks.size());
-            // System.out.println(availableTasks);
-
+        while (!availableTasks.isEmpty()) {
             double nextEst = Double.MAX_VALUE;
             MobileSoftwareComponent nextTask = null;
             ComputationalNode target = null;
 
-            // sort by blevel so we don't have to worry about breaking ties
-            // earlier tasks will always be preferable
-            // Collections.sort(availableTasks, new NodeRankComparator());
-
             // compute EST for all tasks for all processors
             // then deploy task with the lowest overall EST and highest blevel
-
-            // PriorityQueue<MobileSoftwareComponent> availableQueue = new
-            // PriorityQueue<>(new NodeRankComparator());
-            // availableQueue.addAll(availableTasks);
 
             for (MobileSoftwareComponent currTask : availableTasks) {
                 for (ComputationalNode cn : currentInfrastructure.getAllNodes()) {
@@ -172,17 +160,12 @@ public class ETF extends OffloadScheduler {
                 deploy(scheduling, nextTask, target);
                 scheduledTasks.add(nextTask);
                 availableTasks.remove(nextTask);
-                // assignedTasks.add(nextTask);
                 nextTask.setVisited(true);
                 schedulingCounter++;
-                // ArrayList<MobileSoftwareComponent> neighbors =
-                // (ArrayList<MobileSoftwareComponent>) this
-                // .getMobileApplication().getOutgoingEdgesFrom(nextTask)
-                // .stream().map(ComponentLink::getTarget).collect(Collectors.toList());
 
                 MobileApplication ma = this.getMobileApplication();
                 ArrayList<MobileSoftwareComponent> neighbors = ma.getNeighbors(nextTask);
-                System.out.println(nextEst);
+                // System.out.println(nextEst);
 
                 List<MobileSoftwareComponent> readyNeigbors = neighbors.stream()
                     .filter(n -> ma
@@ -206,8 +189,8 @@ public class ETF extends OffloadScheduler {
              * if simulation considers mobility, perform post-scheduling operations (default
              * is to update coordinates of mobile devices)
              */
-            // if (OffloadingSetup.mobility)
-            // postTaskScheduling(scheduling);
+            if (OffloadingSetup.mobility)
+                postTaskScheduling(scheduling);
         }
 
         System.out.println("Counters: " + allTasks.size() + ", " + schedulingCounter);

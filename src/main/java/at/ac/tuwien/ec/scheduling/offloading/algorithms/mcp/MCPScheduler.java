@@ -72,8 +72,8 @@ public class MCPScheduler extends OffloadScheduler {
     public ArrayList<? extends OffloadScheduling> findScheduling() {
         double start = System.nanoTime();
 
-        Set<MobileSoftwareComponent> readyTasks = new HashSet<>();
-        readyTasks.addAll(Arrays.asList(this.getMobileApplication().readyTasks().toArray(new MobileSoftwareComponent[0])));
+        HashSet<MobileSoftwareComponent> readyTasks = new HashSet<>();
+        readyTasks.addAll(this.getMobileApplication().readyTasks());
 
         OffloadScheduling scheduling = new OffloadScheduling();
         ArrayList<OffloadScheduling> deployments = new ArrayList<OffloadScheduling>();
@@ -104,6 +104,17 @@ public class MCPScheduler extends OffloadScheduler {
             if(target != null)
             {
                 deploy(scheduling,chosen,target);
+                chosen.setVisited(true);
+
+                ArrayList<MobileSoftwareComponent> neighbors = this.getMobileApplication().getNeighbors(chosen);
+
+                List<MobileSoftwareComponent> readyNeigbors = neighbors.stream()
+                        .filter(n -> this.getMobileApplication()
+                                .getPredecessors(n).stream()
+                                .allMatch(pred -> pred.isVisited()))
+                        .collect(Collectors.toList());
+
+                readyTasks.addAll(readyNeigbors);
             }
 
             /*
@@ -197,8 +208,7 @@ public class MCPScheduler extends OffloadScheduler {
             alapLists.put(current, result);
             return result;
         } else {
-            Set<ComponentLink> edges = graph.outgoingEdgesOf(current);
-            Stream<MobileSoftwareComponent> neighbours = edges.stream().map(graph::getEdgeTarget);
+            Stream<MobileSoftwareComponent> neighbours = graph.outgoingEdgesOf(current).stream().map(graph::getEdgeTarget);
             List<Double> result = new LinkedList<>();
             neighbours.map(next -> createALAPListForAllNodes(graph, next))
                     .collect(Collectors.toList())

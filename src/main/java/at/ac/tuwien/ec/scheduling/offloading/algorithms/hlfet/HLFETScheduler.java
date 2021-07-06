@@ -85,7 +85,8 @@ public class HLFETScheduler extends OffloadScheduler {
 		MobileSoftwareComponent currTask;
 		//We initialize a new OffloadScheduling object, modelling the scheduling computer with this algorithm
 		OffloadScheduling scheduling = new OffloadScheduling(); 
-		//We check until there are nodes available for scheduling
+		//We check until there are nodes available for schedulings
+
 		while((currTask = tasks.poll())!=null)
 		{
 			//If there are nodes to be scheduled, we check the first task who terminates and free its resources
@@ -106,10 +107,9 @@ public class HLFETScheduler extends OffloadScheduler {
 			else
 			{		
 				for(ComputationalNode cn : currentInfrastructure.getAllNodes())
-					if(currTask.getStarttimeOnNode(cn, currentInfrastructure) < tMin &&
-							isValid(scheduling,currTask,cn))
+					if(cn.getESTforTask(currTask) < tMin &&	isValid(scheduling,currTask,cn))
 					{
-						tMin = currTask.getStarttimeOnNode(cn, currentInfrastructure); // Earliest Start Time
+						tMin = cn.getESTforTask(currTask); // Earliest Start Time
 						target = cn;
 					}
 				

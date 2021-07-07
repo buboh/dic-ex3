@@ -27,7 +27,7 @@ import scala.Tuple2;
  * interprocessor communication time", SIAM Journal of Computing, Vol.18, 1989.
  */
 
-public class ETF extends OffloadScheduler {
+public class ETFMobileOnly extends OffloadScheduler {
 
     private static final long serialVersionUID = 1L;
 
@@ -38,7 +38,7 @@ public class ETF extends OffloadScheduler {
      *          set the parameters and calls setRank() to nodes' ranks
      */
 
-    public ETF(MobileApplication A, MobileCloudInfrastructure I) {
+    public ETFMobileOnly(MobileApplication A, MobileCloudInfrastructure I) {
         super();
         setMobileApplication(A);
         setInfrastructure(I);
@@ -47,7 +47,7 @@ public class ETF extends OffloadScheduler {
         System.out.println("ETF created");
     }
 
-    public ETF(Tuple2<MobileApplication, MobileCloudInfrastructure> t) {
+    public ETFMobileOnly(Tuple2<MobileApplication, MobileCloudInfrastructure> t) {
         super();
         setMobileApplication(t._1());
         setInfrastructure(t._2());
@@ -106,33 +106,7 @@ public class ETF extends OffloadScheduler {
             // compute EST for all tasks for all processors
             // then deploy task with the lowest overall EST and highest blevel
             for (MobileSoftwareComponent currTask : availableTasks) {
-                for (ComputationalNode cn : currentInfrastructure.getAllNodes()) {
-                    // check if task is compatible with the computational node
-                    if (isValid(scheduling, currTask, cn)) {
-                        // get Earliest Start Time EST for the current pair
-                        double est = cn.getESTforTask(currTask);
-                        // check if this pair has the lowest EST until now
-                        if (est < nextEst) {
-                            // if true, select task-node pair to be scheduled next
-                            nextEst = est;
-                            nextTask = currTask;
-                            target = cn;
-                        } else if (est == nextEst) {
-                            // break ties with b-level
-                            if (currTask.getRank() > nextTask.getRank()) {
-                                nextEst = est;
-                                nextTask = currTask;
-                                target = cn;
-                            }
-                        }
-                    }
-                }
-                // don't have to check mobile, since cloud/edge has lowest EST anyway
-                if (nextEst == 0.0) {
-                    break;
-                }
-
-                // check if execution on local device is better
+                // check if execution on local device is possible
                 ComputationalNode local = (ComputationalNode) currentInfrastructure.getNodeById(currTask.getUserId());
                 // check if task is compatible with the computational node
                 if (isValid(scheduling, currTask, local)) {

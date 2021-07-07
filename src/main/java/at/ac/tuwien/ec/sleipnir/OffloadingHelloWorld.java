@@ -12,6 +12,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.hlfet.HLFETEdgeOnly;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.hlfet.HLFETMobileOnly;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.mcp.MCPScheduler;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -212,6 +214,14 @@ public class OffloadingHelloWorld {
 							case "hlfet":
 								System.out.println("Using HLFET");
 								singleSearch = new HLFETScheduler(inputValues);
+								break;
+							case "hlfet-mobile-only":
+								System.out.println("Using HLFET Mobile only");
+								singleSearch = new HLFETMobileOnly(inputValues);
+								break;
+							case "hlfet-edge-only":
+								System.out.println("Using HLFET Edge only");
+								singleSearch = new HLFETEdgeOnly(inputValues);
 								break;
 							case "mcp":
 								System.out.println("Using MCP");

@@ -16,18 +16,18 @@ import at.ac.tuwien.ec.model.software.MobileSoftwareComponent;
 import at.ac.tuwien.ec.model.software.SoftwareComponent;
 import at.ac.tuwien.ec.scheduling.utils.RuntimeComparator;
 
-public abstract class ComputationalNode extends NetworkedNode implements Serializable{
-	
+public abstract class ComputationalNode extends NetworkedNode implements Serializable {
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3728294299293549641L;
 
-	private class DefaultPriceModel implements PricingModel,Serializable
-	{
+	private class DefaultPriceModel implements PricingModel, Serializable {
 		private static final long serialVersionUID = 8372377992210681188L;
 
-		public double computeCost(SoftwareComponent sc, ComputationalNode cn0, ComputationalNode cn, MobileCloudInfrastructure i) {
+		public double computeCost(SoftwareComponent sc, ComputationalNode cn0, ComputationalNode cn,
+				MobileCloudInfrastructure i) {
 			return 0.0;
 		}
 
@@ -37,30 +37,27 @@ public abstract class ComputationalNode extends NetworkedNode implements Seriali
 			return 0;
 		}
 	}
-	
-	
-	
+
 	protected CPUEnergyModel cpuEnergyModel;
 	protected PricingModel priceModel;
 	protected double bandwidth, latency, est = 0.0;
 	protected ArrayList<MobileSoftwareComponent> allocated;
-		
-	public ComputationalNode(String id, HardwareCapabilities capabilities)
-	{
-		super(id,capabilities);
+
+	public ComputationalNode(String id, HardwareCapabilities capabilities) {
+		super(id, capabilities);
 		setPricingModel(new DefaultPriceModel());
 		this.setMaxDistance(-1);
 		this.allocated = new ArrayList<MobileSoftwareComponent>();
 	}
-		
+
 	private void setPricingModel(DefaultPriceModel pricingModel) {
-		this.priceModel = pricingModel;		
+		this.priceModel = pricingModel;
 	}
-		
-	public double getMipsPerCore(){
+
+	public double getMipsPerCore() {
 		return this.capabilities.getMipsPerCore();
 	}
-	
+
 	public CPUEnergyModel getCPUEnergyModel() {
 		return cpuEnergyModel;
 	}
@@ -68,53 +65,52 @@ public abstract class ComputationalNode extends NetworkedNode implements Seriali
 	public void setCPUEnergyModel(CPUEnergyModel cpuEnergyModel) {
 		this.cpuEnergyModel = cpuEnergyModel;
 	}
-	
-	public double computeCost(SoftwareComponent sc, MobileCloudInfrastructure i)
-	{
+
+	public double computeCost(SoftwareComponent sc, MobileCloudInfrastructure i) {
 		return priceModel.computeCost(sc, this, i);
 	}
-		
-	public double computeCost(SoftwareComponent sc, ComputationalNode src, MobileCloudInfrastructure i)
-	{
+
+	public double computeCost(SoftwareComponent sc, ComputationalNode src, MobileCloudInfrastructure i) {
 		return priceModel.computeCost(sc, src, i);
 	}
-	
-	public boolean deploy(SoftwareComponent sc)
-	{
+
+	public boolean deploy(SoftwareComponent sc) {
 		allocated.add((MobileSoftwareComponent) sc);
 		return capabilities.deploy(sc);
 	}
-	
-	public void undeploy(SoftwareComponent sc) 
-	{
+
+	public void undeploy(SoftwareComponent sc) {
 		capabilities.undeploy(sc);
 		allocated.remove(sc);
 	}
-	
-	public double getESTforTask(MobileSoftwareComponent sc)
-	{
+
+	public double getESTforTask(MobileSoftwareComponent sc) {
 		double est = 0.0;
-		if(this.isCompatible(sc))
+		if (this.isCompatible(sc))
 			return est;
-		else
-		{
-			//we check when it will be possible to allocate sc
+		else if (allocated.isEmpty())
+			return Double.MAX_VALUE;
+		else {
+			// we check when it will be possible to allocate sc
 			Collections.sort(allocated, new RuntimeComparator());
 			ArrayList<MobileSoftwareComponent> tmpAllocated = (ArrayList<MobileSoftwareComponent>) allocated.clone();
 			HardwareCapabilities futureCapabilities = capabilities.clone();
 			MobileSoftwareComponent firstTask = tmpAllocated.remove(0);
-			// simulate undeploying tasks (in order of growing runtime) until sc can be deployed
-			// return total run duration of last task to be undeployed in order to make space for sc
-			while(!futureCapabilities.supports(sc.getHardwareRequirements()))
-			{
+			// simulate undeploying tasks (in order of growing runtime) until sc can be
+			// deployed
+			// return total run duration of last task to be undeployed in order to make
+			// space for sc
+			while (!futureCapabilities.supports(sc.getHardwareRequirements()) && !tmpAllocated.isEmpty()) {
 				futureCapabilities.undeploy(firstTask);
 				est = firstTask.getRunTime();
 				firstTask = tmpAllocated.remove(0);
 			}
+			if(!futureCapabilities.supports(sc.getHardwareRequirements()))
+ 				return Double.MAX_VALUE;
 			return est;
 		}
 	}
-	
+
 	public abstract void sampleNode();
 
 	public double getBandwidth() {
@@ -134,7 +130,7 @@ public abstract class ComputationalNode extends NetworkedNode implements Seriali
 	}
 
 	public void undeploy(ContainerInstance vmInstance) {
-		capabilities.undeploy(vmInstance);		
+		capabilities.undeploy(vmInstance);
 	}
 
 	public void deployVM(ContainerInstance vm) {
@@ -148,5 +144,5 @@ public abstract class ComputationalNode extends NetworkedNode implements Seriali
 	public void setAllocatedTasks(ArrayList<MobileSoftwareComponent> allocated) {
 		this.allocated = allocated;
 	}
-	
+
 }

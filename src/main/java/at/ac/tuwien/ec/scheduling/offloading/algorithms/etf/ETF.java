@@ -19,7 +19,6 @@ import at.ac.tuwien.ec.scheduling.utils.RuntimeComparator;
 import at.ac.tuwien.ec.sleipnir.OffloadingSetup;
 import scala.Tuple2;
 
-
 /**
  * OffloadScheduler class that implements the Earliest-Time-First (ETF)
  * algorithm, a priority based scheduling algorithm for homogeneous systems.
@@ -68,57 +67,58 @@ public class ETF extends OffloadScheduler {
     @Override
     public ArrayList<? extends OffloadScheduling> findScheduling() {
 
-        System.out.println("User " + this.getMobileApplication().getUserId() + " - "
-                + this.getMobileApplication().getWorkloadId());
-
         // execution time
         double start = System.nanoTime();
 
+        // queue to hold currently scheduled tasks
         PriorityQueue<MobileSoftwareComponent> scheduledTasks = new PriorityQueue<MobileSoftwareComponent>(
                 new RuntimeComparator());
 
-        // ETF output: starting time, finishing time and processor for each task
+        // list to hold final scheduling
         ArrayList<OffloadScheduling> schedulings = new ArrayList<OffloadScheduling>();
 
-        // nodes with 0 incoming edges - ready to execute
+        // Set of tasks with 0 incoming edges - ready to execute
         HashSet<MobileSoftwareComponent> availableTasks = new HashSet<>();
         availableTasks.addAll(this.getMobileApplication().readyTasks());
 
-        // reset visited to use for scheduling
+        // reset visited to use for scheduling (was previously used to compute b-level)
         ArrayList<MobileSoftwareComponent> allTasks = this.getMobileApplication().getTasks();
         allTasks.forEach(task -> task.setVisited(false));
 
-        // set of scheduled tasks
-        // HashSet<MobileSoftwareComponent> assignedTasks = new HashSet<>();
-
+        // Print how many tasks we want to schedule
         System.out.println("Total tasks: " + allTasks.size());
         System.out.println(allTasks);
+        // debug counter holding the number of already scheduled tasks
         int schedulingCounter = 0;
 
         // We initialize a new OffloadScheduling object, modelling the scheduling
         // computer with this algorithm
         OffloadScheduling scheduling = new OffloadScheduling();
 
-        // while scheduledTasks
+        // while there are tasks to be scheduled
         while (!availableTasks.isEmpty()) {
+            // the values we are trying to find:
+            // lowest EST and the corresponding task and node
             double nextEst = Double.MAX_VALUE;
             MobileSoftwareComponent nextTask = null;
             ComputationalNode target = null;
 
             // compute EST for all tasks for all processors
             // then deploy task with the lowest overall EST and highest blevel
-
             for (MobileSoftwareComponent currTask : availableTasks) {
                 for (ComputationalNode cn : currentInfrastructure.getAllNodes()) {
+                    // check if task is compatible with the computational node
                     if (isValid(scheduling, currTask, cn)) {
-                        // Earliest Start Time EST
+                        // get Earliest Start Time EST for the current pair
                         double est = cn.getESTforTask(currTask);
+                        // check if this pair has the lowest EST until now
                         if (est < nextEst) {
+                            // if true, select task-node pair to be scheduled next
                             nextEst = est;
                             nextTask = currTask;
                             target = cn;
                         } else if (est == nextEst) {
-                            // break ties
+                            // break ties with b-level
                             if (currTask.getRank() > nextTask.getRank()) {
                                 nextEst = est;
                                 nextTask = currTask;
@@ -126,27 +126,26 @@ public class ETF extends OffloadScheduler {
                             }
                         }
                     }
-                    // don't have to keep looking for smaller EST if its 0 already
-                    if (nextEst == 0.0)
-                        break;
                 }
-                // also don't have to check mobile, since cloud/edge has lowest EST anyway
+                // don't have to check mobile, since cloud/edge has lowest EST anyway
                 if (nextEst == 0.0) {
-                    // System.out.println(currTask + " EST == 0");
                     break;
                 }
 
                 // check if execution on local device is better
                 ComputationalNode local = (ComputationalNode) currentInfrastructure.getNodeById(currTask.getUserId());
+                // check if task is compatible with the computational node
                 if (isValid(scheduling, currTask, local)) {
-                    // Earliest Start Time EST
+                    // get Earliest Start Time EST for the current pair
                     double est = local.getESTforTask(currTask);
+                    // check if this pair has the lowest EST until now
                     if (est < nextEst) {
+                        // if true, select task-node pair to be scheduled next
                         nextEst = est;
                         nextTask = currTask;
                         target = local;
                     } else if (est == nextEst) {
-                        // break ties
+                        // break ties with b-level
                         if (currTask.getRank() > nextTask.getRank()) {
                             nextEst = est;
                             nextTask = currTask;
@@ -156,27 +155,28 @@ public class ETF extends OffloadScheduler {
                 }
             }
 
+            // if there is a target and a nextTask to be scheduled
             if (target != null && nextTask != null) {
+                // deploy the task
                 deploy(scheduling, nextTask, target);
+                // and keep track of it
                 scheduledTasks.add(nextTask);
+                // then remove it from the available tasks and set it as visited
                 availableTasks.remove(nextTask);
                 nextTask.setVisited(true);
+                // also count that a task has been scheduled
                 schedulingCounter++;
 
+                // now get all ready successors of the just scheduled task
                 MobileApplication ma = this.getMobileApplication();
                 ArrayList<MobileSoftwareComponent> neighbors = ma.getNeighbors(nextTask);
-                // System.out.println(nextEst);
 
+                // check if all predecessors have already been visited, so that the DAG order is preserved
                 List<MobileSoftwareComponent> readyNeigbors = neighbors.stream()
-                    .filter(n -> ma
-                        .getPredecessors(n).stream()
-                        .allMatch(pred -> pred.isVisited()))
-                    .collect(Collectors.toList());
+                        .filter(n -> ma.getPredecessors(n).stream().allMatch(pred -> pred.isVisited()))
+                        .collect(Collectors.toList());
 
                 availableTasks.addAll(readyNeigbors);
-
-                // System.out.println("Deploy: " + nextTask + " on " + target + " with EST " + nextEst + " - "
-                //         + neighbors.size() + " neighbor(s) added");
 
             } else if (!scheduledTasks.isEmpty()) {
                 MobileSoftwareComponent terminated = scheduledTasks.remove();

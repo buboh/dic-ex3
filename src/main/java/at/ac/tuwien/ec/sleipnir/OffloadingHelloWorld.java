@@ -207,12 +207,12 @@ public class OffloadingHelloWorld {
 								System.out.println("Using HLFET");
 								singleSearch = new HLFETScheduler(inputValues);
 								break;
-							case "hlfet-mobile-only":
-								System.out.println("Using HLFET Mobile only");
+							case "hlfet-mobile":
+								System.out.println("Using HLFET (Mobile only)");
 								singleSearch = new HLFETMobileOnly(inputValues);
 								break;
-							case "hlfet-edge-only":
-								System.out.println("Using HLFET Edge only");
+							case "hlfet-edge":
+								System.out.println("Using HLFET (Edge only)");
 								singleSearch = new HLFETEdgeOnly(inputValues);
 								break;
 							case "mcp":

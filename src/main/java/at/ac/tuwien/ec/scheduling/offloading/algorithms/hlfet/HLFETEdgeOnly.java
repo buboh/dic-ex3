@@ -95,8 +95,8 @@ public class HLFETEdgeOnly extends OffloadScheduler {
             }
             else
             {
-                for(ComputationalNode cn : currentInfrastructure.getAllNodes()) {
-                    if (cn.getESTforTask(currTask) < tMin && isValid(scheduling, currTask, cn) && cn.getId().contains("edge")) {
+                for(ComputationalNode cn : currentInfrastructure.getEdgeNodes().values()) {
+                    if (cn.getESTforTask(currTask) < tMin && isValid(scheduling, currTask, cn)) {
                         tMin = cn.getESTforTask(currTask); // Earliest Start Time
                         target = cn;
                     }

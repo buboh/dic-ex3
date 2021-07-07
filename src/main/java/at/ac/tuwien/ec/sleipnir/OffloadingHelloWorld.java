@@ -35,6 +35,7 @@ import at.ac.tuwien.ec.provisioning.mobile.MobileDevicePlannerWithMobility;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduler;
 import at.ac.tuwien.ec.scheduling.offloading.OffloadScheduling;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.etf.ETF;
+import at.ac.tuwien.ec.scheduling.offloading.algorithms.etf.ETFEdgeOnly;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.heftbased.HEFTResearch;
 import at.ac.tuwien.ec.scheduling.offloading.algorithms.hlfet.HLFETScheduler;
 
@@ -53,12 +54,10 @@ public class OffloadingHelloWorld {
 			System.out.println("ERROR: App frequency must sum to 1!");
 			return;
 		}
-		if (OffloadingSetup.antivirusDistr < 0.0 
-			|| OffloadingSetup.chessDistr < 0.0
-			|| OffloadingSetup.facebookDistr < 0.0 
-			|| OffloadingSetup.facerecDistr < 0.0
-			|| OffloadingSetup.navigatorDistr < 0.0) {
-				
+		if (OffloadingSetup.antivirusDistr < 0.0 || OffloadingSetup.chessDistr < 0.0
+				|| OffloadingSetup.facebookDistr < 0.0 || OffloadingSetup.facerecDistr < 0.0
+				|| OffloadingSetup.navigatorDistr < 0.0) {
+
 			System.out.println("ERROR: App frequencies must be positive!");
 			return;
 		}
@@ -132,13 +131,9 @@ public class OffloadingHelloWorld {
 				 * deployment 5) the battery lifetime of the deployment 6) the execution time of
 				 * the algorithm
 				 */
-				writer.println(
-					mostFrequent._1().toString() + "\t" 
-					+ mostFrequent._2()._1() + "\t"
-					+ mostFrequent._2()._2() + "\t" 
-					+ mostFrequent._2()._3() + "\t" 
-					+ mostFrequent._2()._4() + "\t"
-					+ mostFrequent._2()._5());
+				writer.println(mostFrequent._1().toString() + "\t" + mostFrequent._2()._1() + "\t"
+						+ mostFrequent._2()._2() + "\t" + mostFrequent._2()._3() + "\t" + mostFrequent._2()._4() + "\t"
+						+ mostFrequent._2()._5());
 				writer.flush();
 				writer.close();
 			} catch (IOException e) {
@@ -153,22 +148,10 @@ public class OffloadingHelloWorld {
 	}
 
 	private static String setupOutputFileName(DateFormat dateFormat, Date date, String algoName) {
-		return OffloadingSetup.outfile 
-			+ "/" 
-			+ dateFormat.format(date) 
-			+ "-" 
-			+ OffloadingSetup.MAP_M 
-			+ "X"
-			+ OffloadingSetup.MAP_N 
-			+ "-CLOUD=" 
-			+ OffloadingSetup.cloudNum 
-			+ "-EDGE=" 
-			+ OffloadingSetup.edgeNodes
-			+ "-" 
-			+ algoName 
-			+ ((OffloadingSetup.cloudOnly) ? "-ONLYCLOUD" : "-eta-" 
-			+ OffloadingSetup.Eta)
-			+ ".data";
+		return OffloadingSetup.outfile + "/" + dateFormat.format(date) + "-" + OffloadingSetup.MAP_M + "X"
+				+ OffloadingSetup.MAP_N + "-CLOUD=" + OffloadingSetup.cloudNum + "-EDGE=" + OffloadingSetup.edgeNodes
+				+ "-" + algoName + ((OffloadingSetup.cloudOnly) ? "-ONLYCLOUD" : "-eta-" + OffloadingSetup.Eta)
+				+ ".data";
 	}
 
 	/**
@@ -208,6 +191,14 @@ public class OffloadingHelloWorld {
 							case "etf":
 								System.out.println("Using ETF");
 								singleSearch = new ETF(inputValues);
+								break;
+							case "etf-edge":
+								System.out.println("Using ETF (Edge only)");
+								singleSearch = new ETFEdgeOnly(inputValues);
+								break;
+							case "etf-mobile":
+								System.out.println("Using ETF (Mobile only)");
+								singleSearch = new ETFMobileOnly(inputValues);
 								break;
 							case "hlfet":
 								System.out.println("Using HLFET");
@@ -449,46 +440,25 @@ public class OffloadingHelloWorld {
 
 	private static void printUsageInfo() {
 		// We print usage information
-		System.out.println("\n" 
-			+ "-h, -?\t" 
-			+ "Prints usage information\n" 
-			+ "-mobile=n\t"
-			+ "Instantiates n mobile devices\n" 
-			+ "-cloud=n\t" 
-			+ "Instantiates n cloud nodes\n" 
-			+ "-nApps=n\t"
-			+ "Each workflows has n applications\n" 
-			+ "-cloudonly\t" 
-			+ "Simulation uses only Cloud nodes\n"
-			+ "-area=name\t"
-			+ "Urban area where the offloading is performed (possible choices: HERNALS, LEOPOLDSTADT, SIMMERING)\n"
-			+ "-eta=n\t"
-			+ "Sets the eta parameter, which is necessary to set offloading cost (the higher the eta, the lower the cost).\n"
-			+ "-outfile=string\t" 
-			+ "Saves output in file filename\n" 
-			+ "-iter=n\t"
-			+ "Executes simulation for n iterations\n" 
-			+ "-navigatorMapSize=#\t"
-			+ "Lambda parameter for size of navigator MAP (in kb)\n" 
-			+ "-antivirusFileSize=#\t"
-			+ "Lambda parameter for size of antivirus file (in kb)\n" 
-			+ "-facerecImageSize=#\t"
-			+ "Lambda parameter for size of image file (in kb) for Facerec app\n" 
-			+ "-chessMi=#\t"
-			+ "Lambda parameter for computational size of Chess app \n" 
-			+ "-navigatorDistr=#\t"
-			+ "Probability of NAVIGATOR app in workflow (must be between 0 and 1).\n" 
-			+ "-antivirusDistr=#\t"
-			+ "Probability of ANTIVIRUS app in workflow (must be between 0 and 1).\n" 
-			+ "-facerecDistr=#\t"
-			+ "Probability of FACEREC app in workflow (must be between 0 and 1).\n" 
-			+ "-chessDistr=#\t"
-			+ "Probability of CHESS app in workflow (must be between 0 and 1).\n" 
-			+ "-facebookDistr=#\t"
-			+ "Probability of FACEBOOK app in workflow (must be between 0 and 1).\n" 
-			+ "-algoName=#\t"
-			+ "Name of algorithm to use for offloading.\n" 
-			+ "\n" + "");
+		System.out.println("\n" + "-h, -?\t" + "Prints usage information\n" + "-mobile=n\t"
+				+ "Instantiates n mobile devices\n" + "-cloud=n\t" + "Instantiates n cloud nodes\n" + "-nApps=n\t"
+				+ "Each workflows has n applications\n" + "-cloudonly\t" + "Simulation uses only Cloud nodes\n"
+				+ "-area=name\t"
+				+ "Urban area where the offloading is performed (possible choices: HERNALS, LEOPOLDSTADT, SIMMERING)\n"
+				+ "-eta=n\t"
+				+ "Sets the eta parameter, which is necessary to set offloading cost (the higher the eta, the lower the cost).\n"
+				+ "-outfile=string\t" + "Saves output in file filename\n" + "-iter=n\t"
+				+ "Executes simulation for n iterations\n" + "-navigatorMapSize=#\t"
+				+ "Lambda parameter for size of navigator MAP (in kb)\n" + "-antivirusFileSize=#\t"
+				+ "Lambda parameter for size of antivirus file (in kb)\n" + "-facerecImageSize=#\t"
+				+ "Lambda parameter for size of image file (in kb) for Facerec app\n" + "-chessMi=#\t"
+				+ "Lambda parameter for computational size of Chess app \n" + "-navigatorDistr=#\t"
+				+ "Probability of NAVIGATOR app in workflow (must be between 0 and 1).\n" + "-antivirusDistr=#\t"
+				+ "Probability of ANTIVIRUS app in workflow (must be between 0 and 1).\n" + "-facerecDistr=#\t"
+				+ "Probability of FACEREC app in workflow (must be between 0 and 1).\n" + "-chessDistr=#\t"
+				+ "Probability of CHESS app in workflow (must be between 0 and 1).\n" + "-facebookDistr=#\t"
+				+ "Probability of FACEBOOK app in workflow (must be between 0 and 1).\n" + "-algoName=#\t"
+				+ "Name of algorithm to use for offloading.\n" + "\n" + "");
 	}
 
 }
